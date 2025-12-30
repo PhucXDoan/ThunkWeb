@@ -1,0 +1,6 @@
+__pycache__/
+pyvenv/
+build/
+data/
+*.swp
+.~lock*
