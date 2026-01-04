@@ -115,14 +115,25 @@ def build(parameters):
 
     # Build the executable.
 
-    pxd.execute_shell_command('''
+    SOURCE_FILE_PATHS = (
+        pxd.make_main_relative_path('source/ThunkWeb.c'),
+        pxd.make_main_relative_path('./deps/raylib/zig-out/lib/raylib.lib'),
+    )
+
+    INCLUDE_DIRECTORY_PATHS = (
+        pxd.make_main_relative_path('./deps/raylib/zig-out/include'),
+    )
+
+    EXECUTABLE_FILE_PATH = pxd.make_main_relative_path('./build/ThunkWeb.exe')
+
+    pxd.execute_shell_command(f'''
         cd build &&
             zig cc
-                ../source/ThunkWeb.c
-                ../deps/raylib/zig-out/lib/raylib.lib
+                {' '.join(f'../{file_path.as_posix()}'         for file_path      in SOURCE_FILE_PATHS      )}
+                {' '.join(f'-I ../{directory_path.as_posix()}' for directory_path in INCLUDE_DIRECTORY_PATHS)}
                 -l gdi32
                 -l Winmm
-                -o ./ThunkWeb.exe
+                -o ../{EXECUTABLE_FILE_PATH.as_posix()}
     ''')
 
 

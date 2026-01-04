@@ -1,4 +1,4 @@
-#include "../deps/raylib/zig-out/include/raylib.h"
+#include "raylib.h"
 
 extern int
 main(void)
