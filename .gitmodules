@@ -6,3 +6,7 @@
 	path = deps/pxd
 	url = https://github.com/PhucXDoan/pxd.git
 	branch = master
+[submodule "deps/raygui"]
+	path = deps/raygui
+	url = https://github.com/raysan5/raygui
+	branch = master
