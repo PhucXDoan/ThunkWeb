@@ -134,6 +134,13 @@ def build(parameters):
                 -l gdi32
                 -l Winmm
                 -o ../{EXECUTABLE_FILE_PATH.as_posix()}
+                -std=c23
+                -Weverything
+                -Wno-pre-c23-compat
+                -Wno-padded
+                -Wno-declaration-after-statement
+                -Werror
+                -ferror-limit=1
     ''')
 
 
