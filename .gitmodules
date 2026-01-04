@@ -1,4 +1,4 @@
-[submodule "submodules/raylib"]
-	path = submodules/raylib
+[submodule "deps/raylib"]
+	path = deps/raylib
 	url = https://github.com/raysan5/raylib.git
 	branch = master

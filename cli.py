@@ -61,11 +61,11 @@ def build(parameters):
     )
 
     execute_shell_command('''
-        cd ./submodules/raylib && zig build
+        cd ./deps/raylib && zig build
     ''')
 
     execute_shell_command('''
-        cd build && zig cc ../source/ThunkWeb.c ../submodules/raylib/zig-out/lib/raylib.lib -l gdi32 -l Winmm -o ./ThunkWeb.exe
+        cd build && zig cc ../source/ThunkWeb.c ../deps/raylib/zig-out/lib/raylib.lib -l gdi32 -l Winmm -o ./ThunkWeb.exe
     ''')
 
 
