@@ -9,14 +9,13 @@
 #pragma clang diagnostic ignored "-Wcast-qual"
 #pragma clang diagnostic ignored "-Wmissing-prototypes"
 #pragma clang diagnostic ignored "-Wcast-align"
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 #pragma clang diagnostic pop
 
 
 
-extern int
+extern i32
 main(void)
 {
 
@@ -43,6 +42,50 @@ main(void)
 
 
 
+        // TODO.
+
+        struct Slot
+        {
+            f32 size_x;
+            f32 size_y;
+            f32 position_x;
+            f32 position_y;
+            f32 velocity_x;
+            f32 velocity_y;
+            i32 counter;
+            b32 show_message_box;
+        };
+
+        static struct Slot slots[] =
+            {
+                {
+                    .size_x     = 120.0f,
+                    .size_y     = 30.0f,
+                    .position_x = 10.0f,
+                    .position_y = 20.0f,
+                    .velocity_x = 5.0f,
+                    .velocity_y = 3.0f,
+                    .counter    = 0,
+                },
+                {
+                    .size_x     = 170.0f,
+                    .size_y     = 20.0f,
+                    .position_x = 50.0f,
+                    .position_y = 40.0f,
+                    .velocity_x = -5.0f,
+                    .velocity_y = 8.0f,
+                    .counter    = 0,
+                },
+            };
+
+
+        for (i32 slot_i = 0; slot_i < countof(slots); slot_i += 1)
+        {
+            slots[slot_i].position_x += slots[slot_i].velocity_x * GetFrameTime();
+            slots[slot_i].position_y += slots[slot_i].velocity_y * GetFrameTime();
+        }
+
+
 
         // Render.
 
@@ -51,42 +94,81 @@ main(void)
 
             ClearBackground(RAYWHITE);
 
-            Vector2 box_center = { 100, 200 };
-            Vector2 box_size   = { 150, 90 };
-
-            DrawRectangle
-            (
-                (i32) (box_center.x - box_size.x / 2),
-                (i32) (box_center.y - box_size.y / 2),
-                (i32) box_size.x,
-                (i32) box_size.y,
-                RED
-            );
-
-            DrawText
-            (
-                "Congrats! You created your first window!",
-                (i32) box_center.x,
-                (i32) box_center.y,
-                16,
-                LIGHTGRAY
-            );
-
-
-
-            static b32 showMessageBox = false;
-
-            if (GuiButton((Rectangle){ 24, 24, 120, 30 }, "#191#Show Message"))
+            for (i32 slot_i = 0; slot_i < countof(slots); slot_i += 1)
             {
-                showMessageBox = true;
+                struct Slot* slot = &slots[slot_i];
+
+                if (slot->show_message_box)
+                {
+                    GuiLock();
+                }
             }
 
-            if (showMessageBox)
+            for (i32 slot_i = 0; slot_i < countof(slots); slot_i += 1)
             {
-                int result = GuiMessageBox((Rectangle){ 85, 70, 250, 100 },
-                    "#191#Message Box", "Hi! This is a message!", "Nice;Cool");
 
-                if (result >= 0) showMessageBox = false;
+                struct Slot* slot = &slots[slot_i];
+
+                char button_text_buffer[32] = {0};
+
+                snprintf
+                (
+                    button_text_buffer,
+                    countof(button_text_buffer),
+                    "Meow %d",
+                    slot->counter
+                );
+
+
+
+                b32 button_pressed =
+                    GuiButton
+                    (
+                        (Rectangle)
+                        {
+                            .x      = slot->position_x,
+                            .y      = slot->position_y,
+                            .width  = slot->size_x,
+                            .height = slot->size_y,
+                        },
+                        button_text_buffer
+                    );
+
+                if (button_pressed)
+                {
+                    slot->show_message_box = true;
+                }
+
+            }
+
+            GuiUnlock();
+
+            for (i32 slot_i = 0; slot_i < countof(slots); slot_i += 1)
+            {
+                struct Slot* slot = &slots[slot_i];
+
+                if (slot->show_message_box)
+                {
+                    i32 result =
+                        GuiMessageBox
+                        (
+                            (Rectangle)
+                            {
+                                .x      = slot->position_x + 25,
+                                .y      = slot->position_y + 25,
+                                .width  = 250,
+                                .height = 100,
+                            },
+                            "#191#Message Box",
+                            "Hi! This is a message!",
+                            "Nice;Cool"
+                        );
+
+                    if (result >= 0)
+                    {
+                        slot->show_message_box = false;
+                    }
+                }
             }
 
         }

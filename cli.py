@@ -141,6 +141,7 @@ def build(parameters):
                 -Wno-padded
                 -Wno-declaration-after-statement
                 -Wno-unused-parameter
+                -Wno-unsafe-buffer-usage
                 -Werror
                 -O0
                 -ferror-limit=1

@@ -10,8 +10,8 @@
 #define CONCAT_(X, Y)           X##Y
 #define CONCAT(X, Y)            CONCAT_(X, Y)
 #define IS_POWER_OF_TWO(X)      ((X) > 0 && ((X) & ((X) - 1)) == 0)
-#define countof(...)            (sizeof(__VA_ARGS__) / sizeof((__VA_ARGS__)[0]))
-#define bitsof(...)             (sizeof(__VA_ARGS__) * 8)
+#define countof(...)            ((i32) (sizeof(__VA_ARGS__) / sizeof((__VA_ARGS__)[0])))
+#define bitsof(...)             ((i32) (sizeof(__VA_ARGS__) * 8))
 #define implies(P, Q)           (!(P) || (Q))
 #define iff(P, Q)               (!!(P) == !!(Q))
 #define useret                  __attribute__((warn_unused_result))
