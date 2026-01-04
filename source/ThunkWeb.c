@@ -52,7 +52,6 @@ main(void)
             f32 position_y;
             f32 velocity_x;
             f32 velocity_y;
-            i32 counter;
             b32 show_message_box;
         };
 
@@ -65,7 +64,6 @@ main(void)
                     .position_y = 20.0f,
                     .velocity_x = 5.0f,
                     .velocity_y = 3.0f,
-                    .counter    = 0,
                 },
                 {
                     .size_x     = 170.0f,
@@ -74,10 +72,16 @@ main(void)
                     .position_y = 40.0f,
                     .velocity_x = -5.0f,
                     .velocity_y = 8.0f,
-                    .counter    = 0,
+                },
+                {
+                    .size_x     = 170.0f,
+                    .size_y     = 20.0f,
+                    .position_x = 150.0f,
+                    .position_y = 140.0f,
+                    .velocity_x = 8.0f,
+                    .velocity_y = -4.0f,
                 },
             };
-
 
         for (i32 slot_i = 0; slot_i < countof(slots); slot_i += 1)
         {
@@ -93,6 +97,22 @@ main(void)
         {
 
             ClearBackground(RAYWHITE);
+
+            for (i32 slot_i = 0; slot_i < countof(slots) - 1; slot_i += 1)
+            {
+                struct Slot* current_slot = &slots[slot_i    ];
+                struct Slot* next_slot    = &slots[slot_i + 1];
+
+                DrawLine
+                (
+                    (i32) (current_slot->position_x + current_slot->size_x * 0.5f),
+                    (i32) (current_slot->position_y + current_slot->size_y * 0.5f),
+                    (i32) (next_slot->position_x    + next_slot->size_x    * 0.5f),
+                    (i32) (next_slot->position_y    + next_slot->size_y    * 0.5f),
+                    BLACK
+                );
+            }
+
 
             for (i32 slot_i = 0; slot_i < countof(slots); slot_i += 1)
             {
@@ -116,7 +136,7 @@ main(void)
                     button_text_buffer,
                     countof(button_text_buffer),
                     "Meow %d",
-                    slot->counter
+                    slot_i
                 );
 
 
