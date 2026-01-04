@@ -122,6 +122,7 @@ def build(parameters):
 
     INCLUDE_DIRECTORY_PATHS = (
         pxd.make_main_relative_path('./deps/raylib/zig-out/include'),
+        pxd.make_main_relative_path('./deps/raygui/src'),
     )
 
     EXECUTABLE_FILE_PATH = pxd.make_main_relative_path('./build/ThunkWeb.exe')
@@ -139,7 +140,9 @@ def build(parameters):
                 -Wno-pre-c23-compat
                 -Wno-padded
                 -Wno-declaration-after-statement
+                -Wno-unused-parameter
                 -Werror
+                -O0
                 -ferror-limit=1
     ''')
 
