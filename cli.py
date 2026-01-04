@@ -77,7 +77,7 @@ def build(parameters):
 
     try:
         pxd.metapreprocess(
-            output_directory_path = pxd.make_main_relative_path('./electrical/meta'),
+            output_directory_path = pxd.make_main_relative_path('./source/meta'),
             source_file_paths     = metapreprocessor_file_paths,
         )
     except pxd.MetaPreprocessorError:
