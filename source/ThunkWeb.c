@@ -17,9 +17,8 @@
 
 
 
-#define PIXELS_PER_METER          100.0f
-#define CAMERA_MOVEMENT_DAMPENING 16.0f
-#define CAMERA_MOVEMENT_SPEED     4.0f
+#define CAMERA_MOVEMENT_DAMPENING    16.0f
+#define CAMERA_MOVEMENT_SPEED_FACTOR 4.0f
 
 
 
@@ -63,14 +62,44 @@ main(void)
         f32 delta_time = GetFrameTime();
 
         quit |= WindowShouldClose();
-        quit |= IsKeyDown(KEY_LEFT_CONTROL ) && IsKeyDown(KEY_W);
-        quit |= IsKeyDown(KEY_RIGHT_CONTROL) && IsKeyDown(KEY_W);
+        quit |= IsKeyDown(KEY_LEFT_CONTROL ) && IsKeyPressed(KEY_W);
+        quit |= IsKeyDown(KEY_RIGHT_CONTROL) && IsKeyPressed(KEY_W);
 
 
 
         ////////////////////////////////////////////////////////////////////////////////
         //
-        // Update camera.
+        // Update camera zoom.
+        //
+
+
+
+        static f32 camera_zoom_target   = 0.0f;
+        static f32 camera_zoom_exponent = 0.0f;
+
+        f32 camera_zoom_direction = 0.0f;
+
+        if ((IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) && IsKeyPressed(KEY_MINUS))
+        {
+            camera_zoom_direction -= 1.0f;
+        }
+
+        if ((IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) && IsKeyPressed(KEY_EQUAL))
+        {
+            camera_zoom_direction += 1.0f;
+        }
+
+        camera_zoom_target   += camera_zoom_direction * 0.5f;
+        camera_zoom_target    = minf(maxf(camera_zoom_target, -1.0f), 1.5f);
+        camera_zoom_exponent  = damp(camera_zoom_exponent, camera_zoom_target, 8.0f, delta_time);
+
+        f32 pixels_per_meter = 100.0f * expf(camera_zoom_exponent);
+
+
+
+        ////////////////////////////////////////////////////////////////////////////////
+        //
+        // Update camera view.
         //
 
 
@@ -90,8 +119,8 @@ main(void)
 
         normalize(&camera_control_x, &camera_control_y);
 
-        camera_target_x += camera_control_x * CAMERA_MOVEMENT_SPEED * delta_time;
-        camera_target_y += camera_control_y * CAMERA_MOVEMENT_SPEED * delta_time;
+        camera_target_x += camera_control_x * expf(-camera_zoom_exponent) * CAMERA_MOVEMENT_SPEED_FACTOR * delta_time;
+        camera_target_y += camera_control_y * expf(-camera_zoom_exponent) * CAMERA_MOVEMENT_SPEED_FACTOR * delta_time;
 
         camera_center_x = damp(camera_center_x, camera_target_x, CAMERA_MOVEMENT_DAMPENING, delta_time);
         camera_center_y = damp(camera_center_y, camera_target_y, CAMERA_MOVEMENT_DAMPENING, delta_time);
@@ -223,10 +252,10 @@ main(void)
             slot->rectangle =
                 (Rectangle)
                 {
-                    .x      =                     (slot->position_x - slot->size_x * 0.5f - camera_center_x) * PIXELS_PER_METER + WINDOW_SIZE_X / 2,
-                    .y      = WINDOW_SIZE_Y / 2 - (slot->position_y + slot->size_y * 0.5f - camera_center_y) * PIXELS_PER_METER,
-                    .width  = slot->size_x * PIXELS_PER_METER,
-                    .height = slot->size_y * PIXELS_PER_METER,
+                    .x      =                     (slot->position_x - slot->size_x * 0.5f - camera_center_x) * pixels_per_meter + WINDOW_SIZE_X / 2,
+                    .y      = WINDOW_SIZE_Y / 2 - (slot->position_y + slot->size_y * 0.5f - camera_center_y) * pixels_per_meter,
+                    .width  = slot->size_x * pixels_per_meter,
+                    .height = slot->size_y * pixels_per_meter,
                 };
 
         }
@@ -249,13 +278,13 @@ main(void)
             (
                 (Rectangle)
                 {
-                    .x      = -camera_center_x * PIXELS_PER_METER + WINDOW_SIZE_X / 2,
-                    .y      =  camera_center_y * PIXELS_PER_METER + WINDOW_SIZE_Y / 2,
+                    .x      = -camera_center_x * pixels_per_meter + WINDOW_SIZE_X / 2,
+                    .y      =  camera_center_y * pixels_per_meter + WINDOW_SIZE_Y / 2,
                     .width  = WINDOW_SIZE_X,
                     .height = WINDOW_SIZE_Y,
                 },
                 "meow",
-                PIXELS_PER_METER,
+                pixels_per_meter,
                 8,
                 nullptr
             );
