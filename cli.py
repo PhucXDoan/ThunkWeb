@@ -2,7 +2,7 @@
 
 
 
-import pathlib
+import pathlib, sys
 import deps.pxd.pxd as pxd
 
 
@@ -121,6 +121,7 @@ def build(parameters):
     )
 
     INCLUDE_DIRECTORY_PATHS = (
+        pxd.make_main_relative_path('./source/meta'),
         pxd.make_main_relative_path('./deps/raylib/zig-out/include'),
         pxd.make_main_relative_path('./deps/raygui/src'),
     )
