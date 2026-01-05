@@ -1,4 +1,3 @@
-#include "defs.h"
 #include "raylib.h"
 
 #pragma clang diagnostic push
@@ -13,19 +12,14 @@
 #include "raygui.h"
 #pragma clang diagnostic pop
 
+#include "defs.h"
+#include "mathematics.c"
 
 
-static f32
-lerp(f32 a, f32 b, f32 t)
-{
-    return a * (1.0f - t) + b * t;
-}
 
-static f32
-damp(f32 a, f32 b, f32 k, f32 dt)
-{
-    return lerp(a, b, 1 - expf(-k * dt));
-}
+#define PIXELS_PER_METER          100.0f
+#define CAMERA_MOVEMENT_DAMPENING 16.0f
+#define CAMERA_MOVEMENT_SPEED     4.0f
 
 
 
@@ -33,7 +27,12 @@ extern i32
 main(void)
 {
 
+    ////////////////////////////////////////////////////////////////////////////////
+    //
     // Raylib initialization.
+    //
+
+
 
     #define WINDOW_SIZE_X 800
     #define WINDOW_SIZE_Y 450
@@ -47,16 +46,21 @@ main(void)
 
     SetTargetFPS(60);
 
-
-
-    // Main loop.
-
     b32 quit = false;
 
     while (!quit)
     {
 
-        // Handle inputs.
+
+
+        ////////////////////////////////////////////////////////////////////////////////
+        //
+        // General input handling.
+        //
+
+
+
+        f32 delta_time = GetFrameTime();
 
         quit |= WindowShouldClose();
         quit |= IsKeyDown(KEY_LEFT_CONTROL ) && IsKeyDown(KEY_W);
@@ -64,20 +68,54 @@ main(void)
 
 
 
-        // TODO.
+        ////////////////////////////////////////////////////////////////////////////////
+        //
+        // Update camera.
+        //
+
+
+
+        static f32 camera_target_x = 0.0f;
+        static f32 camera_target_y = 0.0f;
+        static f32 camera_center_x = 0.0f;
+        static f32 camera_center_y = 0.0f;
+
+        f32 camera_control_x = 0.0f;
+        f32 camera_control_y = 0.0f;
+
+        if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT )) camera_control_x -= 1.0f;
+        if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) camera_control_x += 1.0f;
+        if (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN )) camera_control_y -= 1.0f;
+        if (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP   )) camera_control_y += 1.0f;
+
+        normalize(&camera_control_x, &camera_control_y);
+
+        camera_target_x += camera_control_x * CAMERA_MOVEMENT_SPEED * delta_time;
+        camera_target_y += camera_control_y * CAMERA_MOVEMENT_SPEED * delta_time;
+
+        camera_center_x = damp(camera_center_x, camera_target_x, CAMERA_MOVEMENT_DAMPENING, delta_time);
+        camera_center_y = damp(camera_center_y, camera_target_y, CAMERA_MOVEMENT_DAMPENING, delta_time);
+
+
+
+        ////////////////////////////////////////////////////////////////////////////////
+        //
+        // Update slots.
+        //
+
+
 
         struct Slot
         {
-            f32  size_x;
-            f32  size_y;
-            f32  position_x;
-            f32  position_y;
-            f32  velocity_x;
-            f32  velocity_y;
-            b32  show_message_box;
-            char name[64];
-            u16  dependencies[8];
-            i32  dependency_count;
+            f32       size_x;
+            f32       size_y;
+            f32       position_x;
+            f32       position_y;
+            b32       show_message_box;
+            char      name[64];
+            u16       dependencies[8];
+            i32       dependency_count;
+            Rectangle rectangle;
         };
 
 
@@ -165,12 +203,10 @@ main(void)
 
                     Meta.line(f'''
                         {{
-                            .size_x           = {40 + len(slot.name) * 7},
-                            .size_y           = 30.0f,
-                            .position_x       = {round(400 + math.cos(slot_i) * 150)},
-                            .position_y       = {round(200 + math.sin(slot_i) * 150)},
-                            .velocity_x       = 0.0f,
-                            .velocity_y       = 0.0f,
+                            .size_x           = {0.4 + len(slot.name) * 0.07 :.3f}f,
+                            .size_y           = 0.3f,
+                            .position_x       = {math.cos(slot_i / len(SLOTS) * math.tau) * 4 :.3f}f,
+                            .position_y       = {math.sin(slot_i / len(SLOTS) * math.tau) * 4 :.3f}f,
                             .name             = "{slot.name}",
                             .dependencies     = {{ {', '.join(map(str, dependencies))} }},
                             .dependency_count = {len(dependencies)}
@@ -184,100 +220,45 @@ main(void)
 
             struct Slot* slot = &slots[slot_i];
 
-            slot->position_x += slot->velocity_x * GetFrameTime();
-            slot->position_y += slot->velocity_y * GetFrameTime();
-
-            slot->velocity_x = damp(slot->velocity_x, 0.0f, 0.95f, GetFrameTime());
-            slot->velocity_y = damp(slot->velocity_y, 0.0f, 0.95f, GetFrameTime());
-
-            f32 dispersion_x = 0.0f;
-            f32 dispersion_y = 0.0f;
-
-            for (i32 slot_j = 0; slot_j < countof(slots); slot_j += 1)
-            {
-                struct Slot* other = &slots[slot_j];
-
-                f32 delta_x  = other->position_x - slot->position_x;
-                f32 delta_y  = other->position_y - slot->position_y;
-                f32 distance = sqrtf(delta_x * delta_x + delta_y * delta_y);
-
-                if (distance >= 0.001f)
+            slot->rectangle =
+                (Rectangle)
                 {
-                    f32 direction_x = delta_x / distance;
-                    f32 direction_y = delta_y / distance;
-                    f32 weight      = 100'000.0f / (distance * distance);
-
-                    dispersion_x += -direction_x * weight;
-                    dispersion_y += -direction_y * weight;
-                }
-            }
-
-            slot->velocity_x += dispersion_x * GetFrameTime();
-            slot->velocity_y += dispersion_y * GetFrameTime();
-
-
-
-            f32 convergence_x = 0.0f;
-            f32 convergence_y = 0.0f;
-
-            for (i32 dependency_i = 0; dependency_i < slot->dependency_count; dependency_i += 1)
-            {
-                struct Slot* other = &slots[slot->dependencies[dependency_i]];
-
-                f32 delta_x  = other->position_x - slot->position_x;
-                f32 delta_y  = other->position_y - slot->position_y;
-                f32 distance = sqrtf(delta_x * delta_x + delta_y * delta_y);
-
-                if (distance >= 0.001f)
-                {
-                    f32 direction_x = delta_x / distance;
-                    f32 direction_y = delta_y / distance;
-                    f32 weight      = 100'000.0f / (10.0f + (distance - 300.0f) * (distance - 300.0f));
-
-                    convergence_x += direction_x * weight;
-                    convergence_y += direction_y * weight;
-                }
-            }
-
-            slot->velocity_x += convergence_x * GetFrameTime();
-            slot->velocity_y += convergence_y * GetFrameTime();
-
-
-
-            if (slot->position_x - slot->size_x * 0.5f < 0.0f)
-            {
-                slot->position_x = slot->size_x * 0.5f;
-                slot->velocity_x = fabsf(slot->velocity_x);
-            }
-
-            if (slot->position_x + slot->size_x * 0.5f > WINDOW_SIZE_X)
-            {
-                slot->position_x  = WINDOW_SIZE_X - slot->size_x * 0.5f;
-                slot->velocity_x = -fabsf(slot->velocity_x);
-            }
-
-            if (slot->position_y - slot->size_y * 0.5f < 0.0f)
-            {
-                slot->position_y  = slot->size_y * 0.5f;
-                slot->velocity_y = fabsf(slot->velocity_y);
-            }
-
-            if (slot->position_y + slot->size_y * 0.5f > WINDOW_SIZE_Y)
-            {
-                slot->position_y = WINDOW_SIZE_Y - slot->size_y * 0.5f;
-                slot->velocity_y = -fabsf(slot->velocity_y);
-            }
+                    .x      =                     (slot->position_x - slot->size_x * 0.5f - camera_center_x) * PIXELS_PER_METER + WINDOW_SIZE_X / 2,
+                    .y      = WINDOW_SIZE_Y / 2 - (slot->position_y + slot->size_y * 0.5f - camera_center_y) * PIXELS_PER_METER,
+                    .width  = slot->size_x * PIXELS_PER_METER,
+                    .height = slot->size_y * PIXELS_PER_METER,
+                };
 
         }
 
 
 
+        ////////////////////////////////////////////////////////////////////////////////
+        //
         // Render.
+        //
+
+
 
         BeginDrawing();
         {
 
             ClearBackground(RAYWHITE);
+
+            GuiGrid
+            (
+                (Rectangle)
+                {
+                    .x      = -camera_center_x * PIXELS_PER_METER + WINDOW_SIZE_X / 2,
+                    .y      =  camera_center_y * PIXELS_PER_METER + WINDOW_SIZE_Y / 2,
+                    .width  = WINDOW_SIZE_X,
+                    .height = WINDOW_SIZE_Y,
+                },
+                "meow",
+                PIXELS_PER_METER,
+                8,
+                nullptr
+            );
 
             for (i32 slot_i = 0; slot_i < countof(slots); slot_i += 1)
             {
@@ -303,28 +284,8 @@ main(void)
                     (
                         !GuiIsLocked() &&
                         (
-                            CheckCollisionPointRec
-                            (
-                                GetMousePosition(),
-                                (Rectangle)
-                                {
-                                    .x      = current_slot->position_x - current_slot->size_x * 0.5f,
-                                    .y      = current_slot->position_y - current_slot->size_y * 0.5f,
-                                    .width  = current_slot->size_x,
-                                    .height = current_slot->size_y,
-                                }
-                            ) ||
-                            CheckCollisionPointRec
-                            (
-                                GetMousePosition(),
-                                (Rectangle)
-                                {
-                                    .x      = dependency_slot->position_x - dependency_slot->size_x * 0.5f,
-                                    .y      = dependency_slot->position_y - dependency_slot->size_y * 0.5f,
-                                    .width  = dependency_slot->size_x,
-                                    .height = dependency_slot->size_y,
-                                }
-                            )
+                            CheckCollisionPointRec(GetMousePosition(), current_slot->rectangle   ) ||
+                            CheckCollisionPointRec(GetMousePosition(), dependency_slot->rectangle)
                         )
                     )
                     {
@@ -333,15 +294,17 @@ main(void)
 
                     DrawLine
                     (
-                        (i32) current_slot->position_x,
-                        (i32) current_slot->position_y,
-                        (i32) dependency_slot->position_x,
-                        (i32) dependency_slot->position_y,
+                        (int) (current_slot->rectangle.x    + current_slot->rectangle.width     * 0.5f),
+                        (int) (current_slot->rectangle.y    + current_slot->rectangle.height    * 0.5f),
+                        (int) (dependency_slot->rectangle.x + dependency_slot->rectangle.width  * 0.5f),
+                        (int) (dependency_slot->rectangle.y + dependency_slot->rectangle.height * 0.5f),
                         color
                     );
+
                 }
 
             }
+
 
 
             for (i32 slot_i = 0; slot_i < countof(slots); slot_i += 1)
@@ -362,18 +325,7 @@ main(void)
 
 
 
-                b32 button_pressed =
-                    GuiButton
-                    (
-                        (Rectangle)
-                        {
-                            .x      = slot->position_x - slot->size_x * 0.5f,
-                            .y      = slot->position_y - slot->size_y * 0.5f,
-                            .width  = slot->size_x,
-                            .height = slot->size_y,
-                        },
-                        button_text_buffer
-                    );
+                b32 button_pressed = GuiButton(slot->rectangle, button_text_buffer);
 
                 if (button_pressed)
                 {
@@ -395,8 +347,8 @@ main(void)
                         (
                             (Rectangle)
                             {
-                                .x      = slot->position_x + 25,
-                                .y      = slot->position_y + 25,
+                                .x      = slot->rectangle.x + 25,
+                                .y      = slot->rectangle.y + 25,
                                 .width  = 250,
                                 .height = 100,
                             },
