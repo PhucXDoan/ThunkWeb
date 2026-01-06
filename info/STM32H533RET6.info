@@ -1,0 +1,72 @@
+name         HSI_CK
+position_x   4.000
+position_y   0.000
+
+name         CSI_CK
+position_x   3.654
+position_y   1.627
+
+name         HSE_CK
+position_x   2.677
+position_y   2.973
+
+name         PLL_1_CLOCK_SOURCE
+position_x   1.236
+position_y   3.804
+dependencies 0 1 2
+
+name         PLL_1_PREDIVIDER
+position_x   -0.418
+position_y   3.978
+dependencies 3
+
+name         PLL_1_MULTIPLIER
+position_x   -2.000
+position_y   3.464
+dependencies 4
+
+name         PLL_1_CHANNEL_P_DIVIDER
+position_x   -3.236
+position_y   2.351
+dependencies 5
+
+name         PLL_1_CHANNEL_Q_DIVIDER
+position_x   -3.913
+position_y   0.832
+dependencies 5
+
+name         PLL_1_CHANNEL_R_DIVIDER
+position_x   -3.913
+position_y   -0.832
+dependencies 5
+
+name         PLL_2_CLOCK_SOURCE
+position_x   -3.236
+position_y   -2.351
+dependencies 0 1 2
+
+name         PLL_2_PREDIVIDER
+position_x   -2.000
+position_y   -3.464
+dependencies 9
+
+name         PLL_2_MULTIPLIER
+position_x   -0.418
+position_y   -3.978
+dependencies 10
+
+name         PLL_2_CHANNEL_P_DIVIDER
+position_x   1.236
+position_y   -3.804
+dependencies 11
+
+name         PLL_2_CHANNEL_Q_DIVIDER
+position_x   2.677
+position_y   -2.973
+dependencies 11
+
+name         PLL_2_CHANNEL_R_DIVIDER
+position_x   3.654
+position_y   -1.627
+dependencies 11
+

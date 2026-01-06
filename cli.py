@@ -143,6 +143,8 @@ def build(parameters):
                 -Wno-declaration-after-statement
                 -Wno-unused-parameter
                 -Wno-unsafe-buffer-usage
+                -Wno-pre-c11-compat
+                -Wno-unused-function
                 -Werror
                 -O0
                 -ferror-limit=1

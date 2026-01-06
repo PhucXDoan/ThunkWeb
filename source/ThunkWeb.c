@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "raylib.h"
 
 #pragma clang diagnostic push
@@ -23,9 +24,83 @@
 
 
 
+static void
+allocate_and_read_file(char* file_path, u8** file_data, i64* file_length)
+{
+
+    // Get stuff ready.
+
+    assert(file_path);
+    assert(file_data);
+    assert(file_length);
+
+    i32 integer_result = {0};
+
+    *file_data   = nullptr;
+    *file_length = 0;
+
+
+
+    // Get file handle.
+
+    FILE* file_handle = fopen(file_path, "rb");
+    assert(file_handle);
+
+
+
+    // Get file length.
+
+    integer_result = fseek(file_handle, 0, SEEK_END);
+    assert(!integer_result);
+
+    *file_length = ftell(file_handle);
+    assert(*file_length != -1);
+
+    integer_result = fseek(file_handle, 0, SEEK_SET);
+    assert(!integer_result);
+
+
+
+    // Get file content.
+
+    if (*file_length)
+    {
+        *file_data = calloc((u32) *file_length, sizeof(u8));
+        assert(*file_data);
+
+        u64 fread_result = fread(*file_data, (u64) *file_length, 1, file_handle);
+        assert(fread_result == 1);
+    }
+
+
+
+    // Done with file handle.
+
+    integer_result = fclose(file_handle);
+    assert(!integer_result);
+
+}
+
+
+
 extern i32
 main(void)
 {
+
+    ////////////////////////////////////////////////////////////////////////////////
+    //
+    // TODO.
+    //
+
+
+
+    u8* file_data   = {0};
+    i64 file_length = {0};
+    allocate_and_read_file("./info/STM32H533RET6.info", &file_data, &file_length);
+
+    printf("```\n%.*s\n```\n", (i32) file_length, file_data);
+
+
 
     ////////////////////////////////////////////////////////////////////////////////
     //
@@ -170,6 +245,7 @@ main(void)
         /* #meta
 
             import types, math
+            import deps.pxd.pxd as pxd
 
             SLOTS = (
                 types.SimpleNamespace(
@@ -258,6 +334,30 @@ main(void)
                             .dependency_count = {len(dependencies)}
                         }},
                     ''')
+
+
+
+            info = ''
+
+            for slot_i, slot in enumerate(SLOTS):
+
+                dependencies = [
+                    next(
+                        other_i
+                        for other_i, other in enumerate(SLOTS)
+                        if other.name == dependency
+                    )
+                    for dependency in slot.dependencies
+                ]
+
+                info += f'name         {slot.name}'                                         '\n'
+                info += f'position_x   {math.cos(slot_i / len(SLOTS) * math.tau) * 4 :.3f}' '\n'
+                info += f'position_y   {math.sin(slot_i / len(SLOTS) * math.tau) * 4 :.3f}' '\n'
+                if dependencies:
+                    info += f'dependencies {' '.join(map(str, dependencies))}'                  '\n'
+                info += '\n'
+
+            pxd.make_main_relative_path('./info/STM32H533RET6.info').write_text(info)
 
         */
 
