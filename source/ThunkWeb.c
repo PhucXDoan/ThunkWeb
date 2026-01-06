@@ -128,6 +128,20 @@ main(void)
         camera_center_x = damp(camera_center_x, camera_target_x, CAMERA_MOVEMENT_DAMPENING, delta_time);
         camera_center_y = damp(camera_center_y, camera_target_y, CAMERA_MOVEMENT_DAMPENING, delta_time);
 
+        if (IsMouseButtonDown(MOUSE_BUTTON_MIDDLE))
+        {
+
+            Vector2 delta = GetMouseDelta();
+            delta.x /= pixels_per_meter;
+            delta.y /= pixels_per_meter;
+
+            camera_target_x -= delta.x;
+            camera_target_y += delta.y;
+            camera_center_x -= delta.x;
+            camera_center_y += delta.y;
+
+        }
+
 
 
         ////////////////////////////////////////////////////////////////////////////////
