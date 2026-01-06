@@ -17,8 +17,9 @@
 
 
 
-#define CAMERA_MOVEMENT_DAMPENING    16.0f
-#define CAMERA_MOVEMENT_SPEED_FACTOR 4.0f
+#define CAMERA_MOVEMENT_DAMPENING      16.0f
+#define CAMERA_MOVEMENT_SPEED_FACTOR   4.0f
+#define CAMERA_ZOOM_SCROLL_SENSITIVITY 0.5f
 
 
 
@@ -88,6 +89,8 @@ main(void)
         {
             camera_zoom_direction += 1.0f;
         }
+
+        camera_zoom_direction += GetMouseWheelMove() * CAMERA_ZOOM_SCROLL_SENSITIVITY;
 
         camera_zoom_target   += camera_zoom_direction * 0.5f;
         camera_zoom_target    = minf(maxf(camera_zoom_target, -1.0f), 1.5f);
