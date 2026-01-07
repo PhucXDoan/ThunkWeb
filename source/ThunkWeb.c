@@ -83,8 +83,8 @@ allocate_and_read_file(char* file_path, u8** file_data, i64* file_length)
 
 
 
-extern i32
-main(void)
+static void
+load_info_file(void)
 {
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -101,6 +101,135 @@ main(void)
     printf("```\n%.*s\n```\n", (i32) file_length, file_data);
 
 
+
+    i64 file_reader = 0;
+
+    while (file_reader < file_length)
+    {
+
+        // Skip whitespace.
+
+        if (file_data[file_reader] <= 32)
+        {
+            file_reader += 1;
+            continue;
+        }
+
+
+
+        // Grab the identifier.
+
+        u8* identifier_data   = &file_data[file_reader];
+        i64 identifier_length = 0;
+
+        while (true)
+        {
+            if (file_reader == file_length)
+            {
+                break;
+            }
+            else if (file_data[file_reader] <= 32)
+            {
+                file_reader += 1;
+                break;
+            }
+            else
+            {
+                file_reader       += 1;
+                identifier_length += 1;
+            }
+        }
+
+
+
+        // Determine the keyword.
+
+        #include "InfoKeyword.meta"
+        /* #meta
+
+            KEYWORDS = (
+                'name',
+                'position_x',
+                'position_y',
+                'dependencies',
+            )
+
+            Meta.enums('InfoKeyword', 'u32', KEYWORDS)
+            Meta.lut('INFO_KEYWORDS', (
+                (
+                    f'InfoKeyword_{keyword}',
+                    ('const char*', 'text', f'"{keyword}"'),
+                )
+                for keyword in KEYWORDS
+            ))
+
+        */
+
+        b32              valid_keyword = false;
+        enum InfoKeyword keyword       = {0};
+
+        for (enum InfoKeyword it = {0}; it < InfoKeyword_COUNT; it += 1)
+        {
+            if
+            (
+                strncmp
+                (
+                    INFO_KEYWORDS[it].text,
+                    (const char*) identifier_data,
+                    (u64        ) identifier_length
+                ) == 0
+            )
+            {
+                valid_keyword = true;
+                keyword       = it;
+                break;
+            }
+        }
+
+        if (!valid_keyword)
+        {
+            printf("Non-keyword `%.*s`\n", (i32) identifier_length, identifier_data);
+            continue; // TODO.
+        }
+
+
+
+        // Handle keyword.
+
+        switch (keyword)
+        {
+            case InfoKeyword_name:
+            {
+                printf("Name `%.*s`\n", (i32) identifier_length, identifier_data);
+            } break;
+
+            case InfoKeyword_position_x:
+            {
+                printf("Position-x `%.*s`\n", (i32) identifier_length, identifier_data);
+            } break;
+
+            case InfoKeyword_position_y:
+            {
+                printf("Position-y `%.*s`\n", (i32) identifier_length, identifier_data);
+            } break;
+
+            case InfoKeyword_dependencies:
+            {
+                printf("Dependencies `%.*s`\n", (i32) identifier_length, identifier_data);
+            } break;
+
+            default: assert(false); // TODO.
+        }
+
+    }
+
+}
+
+
+
+extern i32
+main(void)
+{
 
     ////////////////////////////////////////////////////////////////////////////////
     //
@@ -120,6 +249,8 @@ main(void)
     );
 
     SetTargetFPS(60);
+
+    load_info_file();
 
     b32 quit = false;
 

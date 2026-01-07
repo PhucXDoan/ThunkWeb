@@ -1,0 +1,15 @@
+enum InfoKeyword : u32
+{
+    InfoKeyword_name,
+    InfoKeyword_position_x,
+    InfoKeyword_position_y,
+    InfoKeyword_dependencies,
+};
+static constexpr u32 InfoKeyword_COUNT = 4;
+static const struct { const char* text; } INFO_KEYWORDS[] =
+    {
+        [InfoKeyword_name] =         { .text = "name"         },
+        [InfoKeyword_position_x] =   { .text = "position_x"   },
+        [InfoKeyword_position_y] =   { .text = "position_y"   },
+        [InfoKeyword_dependencies] = { .text = "dependencies" },
+    };

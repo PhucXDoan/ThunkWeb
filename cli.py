@@ -144,7 +144,10 @@ def build(parameters):
                 -Wno-unused-parameter
                 -Wno-unsafe-buffer-usage
                 -Wno-pre-c11-compat
+                -Wno-c++98-compat
                 -Wno-unused-function
+                -Wno-unused-variable
+                -Wno-covered-switch-default
                 -Werror
                 -O0
                 -ferror-limit=1
